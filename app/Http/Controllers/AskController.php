@@ -228,6 +228,108 @@ class AskController extends Controller
     }
 
     /**
+     * POST /api/ask/chat
+     *
+     * Streaming endpoint designed for the Vercel AI SDK's useChat() hook.
+     *
+     * ── Why a separate endpoint from GET /api/ask/stream? ────────────────
+     *
+     * The existing GET /api/ask/stream endpoint was designed for the Alpine.js
+     * frontend, which used EventSource. EventSource:
+     *   ✗ Only supports GET requests
+     *   ✗ Cannot send custom headers (breaks Sanctum Authorization: Bearer)
+     *   ✗ No built-in message history
+     *
+     * The Vercel AI SDK's useChat() hook uses fetch() instead:
+     *   ✓ Sends POST with { messages: [...] } body
+     *   ✓ Supports custom headers (Authorization: Bearer works natively)
+     *   ✓ Manages full conversation history client-side
+     *   ✓ Auto-reconnects, handles errors, tracks loading state
+     *
+     * ── useChat() wire format ─────────────────────────────────────────────
+     *
+     * Request (sent by useChat()):
+     *   POST /api/ask/chat
+     *   Authorization: Bearer <sanctum-token>
+     *   Content-Type: application/json
+     *   { "messages": [
+     *       { "id": "abc", "role": "user", "content": "What is the PTO policy?" }
+     *     ]
+     *   }
+     *
+     * The 'messages' array contains the full conversation history. For our
+     * stateless RAG use case, we only care about the LAST user message —
+     * that's the current question. Previous messages are ignored (each
+     * question gets a fresh context retrieval).
+     *
+     * Response (what useChat() expects):
+     *   SSE stream in Vercel data protocol format, produced by
+     *   ->stream()->usingVercelDataProtocol()
+     *
+     * ── Chat vs Q&A ───────────────────────────────────────────────────────
+     *
+     * This endpoint is "chat-shaped" (stateful conversation history in the
+     * client) but "Q&A-brained" (each answer is independently retrieved from
+     * docs, no conversation memory in the LLM prompt). This is intentional —
+     * the UI feels like ChatGPT but each question is answered from scratch
+     * based on the documents, not the prior conversation.
+     *
+     * To add real conversational memory, you'd accumulate prior Q+A pairs
+     * in the agent's prompt or use ->forUser()->continue($conversationId).
+     */
+    public function chat(Request $request): mixed
+    {
+        $request->validate([
+            // useChat() sends the entire message history as an array.
+            // Each message has role ('user' | 'assistant') and content (string).
+            'messages' => ['required', 'array', 'min:1'],
+            'messages.*.role' => ['required', 'string', 'in:user,assistant,system'],
+            'messages.*.content' => ['required', 'string', 'max:2000'],
+        ]);
+
+        // Extract the last user message — that's the current question.
+        // useChat() appends the new user message before sending, so the
+        // last element is always the question we need to answer.
+        $lastUserMessage = collect($request->input('messages'))
+            ->filter(fn ($m) => $m['role'] === 'user')
+            ->last();
+
+        $question = $lastUserMessage['content'] ?? '';
+
+        if (! $question) {
+            return response()->json(['error' => 'No user message found.'], 422);
+        }
+
+        // Same three-stage RAG pipeline as ask() and stream().
+        // See ask() method for detailed comments on each step.
+        $candidates = Document::query()
+            ->whereVectorSimilarTo('embedding', $question, minSimilarity: 0.4)
+            ->limit(15)
+            ->get(['id', 'title', 'content', 'source']);
+
+        $topDocuments = $candidates->rerank(
+            by: 'content',
+            query: $question,
+            limit: 5,
+            provider: Lab::Cohere,
+        );
+
+        $context = $topDocuments
+            ->map(fn ($doc) => "[Source: {$doc->title}]\n{$doc->content}")
+            ->implode("\n\n---\n\n");
+
+        // Return the stream. usingVercelDataProtocol() formats each token as:
+        //   data: "0:\"<token>\"\n\n"
+        // which useChat() parses and appends to the assistant message in real time.
+        return agent(instructions: $this->buildInstructions($context))
+            ->stream(
+                prompt: $question,
+                provider: [Lab::Anthropic, Lab::OpenAI],
+            )
+            ->usingVercelDataProtocol();
+    }
+
+    /**
      * Build the system instructions for the agent.
      *
      * These instructions implement the RAG constraint: the agent must ONLY

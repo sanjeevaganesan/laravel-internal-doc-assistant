@@ -75,13 +75,33 @@ Route::middleware('auth:sanctum')->group(function () {
      *
      * Streaming RAG query. Streams the answer token-by-token as Server-Sent
      * Events using the Vercel AI SDK data protocol. Compatible with:
-     *   - Browser EventSource API
-     *   - Vercel AI SDK's useChat() hook in React
+     *   - Browser EventSource API (used by the Blade+Alpine.js frontend on main)
+     *
+     * Note: EventSource cannot send the Authorization header, so this endpoint
+     * relies on the api_token query param for auth in the Alpine.js frontend.
+     * For React, use POST /api/ask/chat instead (fetch supports headers).
      *
      * Query params: ?question=What+is+the+deploy+process
-     * Streams: SSE events in Vercel protocol format
      */
     Route::get('/ask/stream', [AskController::class, 'stream']);
+
+    /*
+     * POST /api/ask/chat
+     *
+     * Streaming endpoint designed for the Vercel AI SDK's useChat() hook.
+     * Accepts the useChat() wire format: { messages: [{role, content}, ...] }
+     * Extracts the last user message as the question, runs the same RAG pipeline,
+     * and returns a stream in Vercel data protocol format.
+     *
+     * Why POST instead of GET?
+     *   useChat() uses fetch() which supports POST + custom headers.
+     *   This allows Authorization: Bearer <token> to work natively — no
+     *   token-in-query-string workaround needed (unlike EventSource).
+     *
+     * Body: { "messages": [{"role": "user", "content": "What is PTO?"}] }
+     * Streams: SSE in Vercel data protocol (same format as /ask/stream)
+     */
+    Route::post('/ask/chat', [AskController::class, 'chat']);
 
     // ── Provider-side RAG path ─────────────────────────────────────────
     //
