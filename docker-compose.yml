@@ -1,0 +1,50 @@
+###############################################################################
+# Docker Compose — Local Development Stack
+###############################################################################
+#
+# Provides a PostgreSQL 16 instance with the pgvector extension pre-installed.
+# pgvector is required by laravel/ai for vector similarity search.
+#
+# Quick start:
+#   docker compose up -d         # Start Postgres in the background
+#   php artisan migrate          # Run all migrations (creates pgvector extension)
+#   php artisan documents:ingest # Embed and store your documents
+#   php artisan serve            # Start the Laravel dev server
+#
+# Connection details (matches .env.example defaults):
+#   Host: 127.0.0.1   Port: 5432
+#   Database: doc_assistant   User: postgres   Password: secret
+#
+###############################################################################
+
+services:
+
+  db:
+    # pgvector/pgvector:pg16 is the official image that bundles PostgreSQL 16
+    # with the pgvector extension already compiled and available.
+    # Schema::ensureVectorExtensionExists() will enable it on first migrate.
+    image: pgvector/pgvector:pg16
+
+    environment:
+      POSTGRES_DB:       doc_assistant
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: secret
+
+    ports:
+      # Map container 5432 to host 5432 so Laravel can connect via 127.0.0.1:5432
+      - "5432:5432"
+
+    volumes:
+      # Named volume persists data between container restarts.
+      # Run 'docker compose down -v' to wipe the database completely.
+      - db_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  # db_data is a Docker-managed volume stored in /var/lib/docker/volumes/
+  db_data:

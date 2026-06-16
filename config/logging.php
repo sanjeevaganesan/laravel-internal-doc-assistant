@@ -127,6 +127,26 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        /*
+         * Dedicated channel for laravel/ai SDK observability.
+         *
+         * All AI lifecycle events (embeddings, reranking, agent prompts) are
+         * logged here via AiObservabilityListener. Separating AI logs from the
+         * main application log makes it easy to:
+         *   - Monitor token usage and API costs
+         *   - Debug retrieval and generation quality issues
+         *   - Ship AI-specific logs to a separate sink (Datadog, Grafana, etc.)
+         *
+         * Logs are rotated daily and kept for 14 days.
+         * File: storage/logs/ai-YYYY-MM-DD.log
+         */
+        'ai' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/ai.log'),
+            'level'  => 'debug',
+            'days'   => 14,
+        ],
+
     ],
 
 ];
