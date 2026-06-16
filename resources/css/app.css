@@ -4,6 +4,30 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/*
+ * Streaming cursor animation — used in the Message component.
+ *
+ * The .streaming-cursor span is rendered inline after the last token
+ * while isLoading is true. The blink gives visual feedback that the
+ * model is still generating.
+ *
+ * Using CSS animation instead of JS setInterval keeps the blinking
+ * off the React render cycle — no state change needed.
+ */
+@keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+
+.streaming-cursor {
+    display: inline-block;
+    animation: cursor-blink 1s step-end infinite;
+    color: #818cf8; /* indigo-400 — matches the assistant bubble theme */
+    font-size: 0.85em;
+    line-height: 1;
+    vertical-align: middle;
 }
