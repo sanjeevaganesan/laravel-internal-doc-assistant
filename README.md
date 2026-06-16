@@ -22,6 +22,7 @@ questions and get cited answers from internal documentation — powered by
 11. [Observability](#observability)
 12. [Frontend Branches](#frontend-branches)
 13. [Key Concepts Reference](#key-concepts-reference)
+14. [Commit History — Step-by-Step Learning Path](#commit-history--step-by-step-learning-path)
 
 ---
 
@@ -618,3 +619,57 @@ npm install && npm run dev
 | Auth | Laravel Sanctum (API tokens) |
 | Testing | Pest 4.7 + pest-plugin-laravel 4.1 |
 | Dev DB | Docker — pgvector/pgvector:pg16 |
+
+---
+
+## Commit History — Step-by-Step Learning Path
+
+Each commit is atomic and independently reviewable. Follow them in order to
+understand how the application is built layer by layer.
+
+```
+git log --oneline
+```
+
+| # | Commit message (prefix) | What it introduces |
+|---|-------------------------|--------------------|
+| 1 | `Bootstrap` | Laravel 13.15 + `laravel/ai` v0.8.1 + Pest 4.7 installed; `tests/Pest.php` configured |
+| 2 | `Config` | Anthropic/OpenAI/Cohere provider config, 30-day embedding cache, `docker-compose.yml`, dedicated `ai` log channel |
+| 3 | `Migration` | `documents` table — `Schema::ensureVectorExtensionExists()`, `vector('embedding', 1536)`, HNSW cosine index |
+| 4 | `Model` | `Document` Eloquent model — `embedding` cast to `array`; `DocumentFactory` with 1536-dim unit vectors for tests |
+| 5 | `Ingest` | `php artisan documents:ingest` — reads `*.md`, chunks (~800 tokens, 100-token overlap), `Str::toEmbeddings(cache: true)` |
+| 6 | `Controllers` | `POST /ask` + `GET /ask/stream` — embed → pgvector → Cohere rerank → `agent()` with Anthropic+OpenAI failover + `->usingVercelDataProtocol()` |
+| 6b | `Sanctum` | API token auth — `TokenController`, `HasApiTokens`, `auth:sanctum` middleware on all `/ask/*` and `/vector-store/*` routes |
+| 7 | `Vector Stores` | `VectorStoreController` — `Stores::create()`, `Document::fromPath()` + metadata, `FileSearch` tool with `where` filter |
+| 8 | `Observability` | `AiObservabilityListener` — 6 SDK event pairs (before/after) logged to `storage/logs/ai-*.log` |
+| 9 | `Docs` | 3 sample `.md` files: `engineering-runbook`, `hr-policies`, `onboarding` (each >3000 chars, 2+ chunks each) |
+| 10 | `Tests` | 22 Pest tests across 5 files — `Embeddings::fake()`, `Reranking::fake()`, `Stores::fake()`, `Storage::fake()` |
+| 11 | `README` | RAG concepts, open-book analogy, Mermaid diagrams, setup guide, API reference, 14-term glossary |
+| 12 | `Frontend` | Blade + Alpine.js UI — "Ask" (JSON) + "Stream" (EventSource) buttons; `pint` code style pass |
+
+### How to walk through the commits
+
+```bash
+# View the full commit list with short hashes
+git log --oneline
+
+# Inspect a specific commit (e.g. the migration commit)
+git show <sha>
+
+# See exactly what changed in commit N
+git diff <sha>^..<sha>
+
+# Checkout any commit to study it in isolation
+git checkout <sha>    # detached HEAD — read-only exploration
+git checkout main     # return to latest
+```
+
+### Branch plan
+
+| Branch | Frontend | When |
+|--------|----------|------|
+| `main` | Blade + Alpine.js (no build step, native `EventSource`) | ✅ Complete |
+| `feature/react-vercel-ai` | React + Vercel AI SDK `useChat()` hook | Next — create from `main` |
+
+The `GET /api/ask/stream` backend already outputs `->usingVercelDataProtocol()`.
+The React branch only changes the frontend — the API is identical.
