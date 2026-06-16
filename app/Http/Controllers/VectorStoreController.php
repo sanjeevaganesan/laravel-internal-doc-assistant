@@ -91,9 +91,9 @@ class VectorStoreController extends Controller
             name: 'internal-docs',
         );
 
-        $files        = Storage::disk('local')->files('knowledge');
+        $files = Storage::disk('local')->files('knowledge');
         $markdownFiles = array_filter($files, fn ($f) => str_ends_with($f, '.md'));
-        $fileCount    = 0;
+        $fileCount = 0;
 
         foreach ($markdownFiles as $path) {
             $fullPath = Storage::disk('local')->path($path);
@@ -115,8 +115,8 @@ class VectorStoreController extends Controller
                 file: Document::fromPath($fullPath),
                 metadata: [
                     'department' => 'engineering',
-                    'year'       => (int) date('Y'),
-                    'author'     => 'internal',
+                    'year' => (int) date('Y'),
+                    'author' => 'internal',
                 ],
             );
 
@@ -124,9 +124,9 @@ class VectorStoreController extends Controller
         }
 
         return response()->json([
-            'store_id'   => $store->id,
+            'store_id' => $store->id,
             'file_count' => $fileCount,
-            'status'     => 'ingested',
+            'status' => 'ingested',
         ]);
     }
 
@@ -151,11 +151,11 @@ class VectorStoreController extends Controller
         $request->validate([
             'question' => ['required', 'string', 'max:1000'],
             'store_id' => ['required', 'string'],
-            'year'     => ['nullable', 'integer', 'min:2000', 'max:2100'],
+            'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
         ]);
 
         $storeId = $request->input('store_id');
-        $year    = $request->integer('year', (int) date('Y'));
+        $year = $request->integer('year', (int) date('Y'));
 
         /*
          * FileSearch is a provider tool — it runs on OpenAI's servers.
@@ -176,7 +176,7 @@ class VectorStoreController extends Controller
             stores: [$storeId],
             where: function ($query) use ($year): void {
                 $query->where('year', $year)
-                      ->where('department', 'engineering');
+                    ->where('department', 'engineering');
             },
         );
 
@@ -192,12 +192,12 @@ class VectorStoreController extends Controller
          */
         $response = agent(
             instructions: 'You are an internal documentation assistant. '
-                . 'Answer questions based on the search results from the knowledge base. '
-                . 'Cite source titles when referencing specific documents. '
-                . 'If you cannot find relevant information, say "I don\'t know based on the available documentation."',
+                .'Answer questions based on the search results from the knowledge base. '
+                .'Cite source titles when referencing specific documents. '
+                .'If you cannot find relevant information, say "I don\'t know based on the available documentation."',
         )
             ->prompt(
-                prompt:   $request->input('question'),
+                prompt: $request->input('question'),
                 provider: Lab::OpenAI,
             );
 

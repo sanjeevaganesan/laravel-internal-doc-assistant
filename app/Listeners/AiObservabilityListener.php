@@ -66,7 +66,7 @@ class AiObservabilityListener
     {
         Log::channel($this->channel)->debug('AI: generating embeddings', [
             'invocation_id' => $event->invocationId,
-            'input_count'   => count($event->prompt->inputs),
+            'input_count' => count($event->prompt->inputs),
         ]);
     }
 
@@ -78,7 +78,7 @@ class AiObservabilityListener
     public function onEmbeddingsGenerated(EmbeddingsGenerated $event): void
     {
         Log::channel($this->channel)->info('AI: embeddings generated', [
-            'invocation_id'  => $event->invocationId,
+            'invocation_id' => $event->invocationId,
             'embedding_count' => count($event->response->embeddings),
         ]);
     }
@@ -95,9 +95,9 @@ class AiObservabilityListener
     public function onReranking(Reranking $event): void
     {
         Log::channel($this->channel)->debug('AI: reranking documents', [
-            'invocation_id'  => $event->invocationId,
+            'invocation_id' => $event->invocationId,
             'document_count' => count($event->prompt->documents),
-            'query_preview'  => substr($event->prompt->query, 0, 80),
+            'query_preview' => substr($event->prompt->query, 0, 80),
         ]);
     }
 
@@ -108,13 +108,13 @@ class AiObservabilityListener
      */
     public function onReranked(Reranked $event): void
     {
-        $results   = $event->response->results;
-        $topScore  = ! empty($results) ? round($results[0]->score, 4) : null;
+        $results = $event->response->results;
+        $topScore = ! empty($results) ? round($results[0]->score, 4) : null;
 
         Log::channel($this->channel)->info('AI: reranking complete', [
             'invocation_id' => $event->invocationId,
-            'result_count'  => count($results),
-            'top_score'     => $topScore,
+            'result_count' => count($results),
+            'top_score' => $topScore,
         ]);
     }
 
@@ -148,10 +148,10 @@ class AiObservabilityListener
         $usage = $event->response->usage ?? null;
 
         Log::channel($this->channel)->info('AI: agent responded', [
-            'invocation_id'     => $event->invocationId,
-            'prompt_tokens'     => $usage?->promptTokens,
+            'invocation_id' => $event->invocationId,
+            'prompt_tokens' => $usage?->promptTokens,
             'completion_tokens' => $usage?->completionTokens,
-            'total_tokens'      => $usage
+            'total_tokens' => $usage
                 ? ($usage->promptTokens + $usage->completionTokens)
                 : null,
         ]);

@@ -22,9 +22,9 @@ class DocumentFactory extends Factory
     public function definition(): array
     {
         return [
-            'title'     => $this->faker->words(3, true),
-            'content'   => $this->faker->paragraphs(3, true),
-            'source'    => 'knowledge/' . $this->faker->slug() . '.md',
+            'title' => $this->faker->words(3, true),
+            'content' => $this->faker->paragraphs(3, true),
+            'source' => 'knowledge/'.$this->faker->slug().'.md',
 
             // Generate a random 1536-dimensional unit vector.
             // A real embedding is a meaningful float[] from OpenAI; this is just

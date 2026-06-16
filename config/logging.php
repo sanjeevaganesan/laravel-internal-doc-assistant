@@ -142,9 +142,9 @@ return [
          */
         'ai' => [
             'driver' => 'daily',
-            'path'   => storage_path('logs/ai.log'),
-            'level'  => 'debug',
-            'days'   => 14,
+            'path' => storage_path('logs/ai.log'),
+            'level' => 'debug',
+            'days' => 14,
         ],
 
     ],

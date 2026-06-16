@@ -39,7 +39,7 @@ use Laravel\Ai\Reranking;
  */
 function getAuthHeader(): string
 {
-    $user  = User::factory()->create();
+    $user = User::factory()->create();
     $token = $user->createToken('test')->plainTextToken;
 
     return "Bearer {$token}";
@@ -62,7 +62,7 @@ beforeEach(function (): void {
  */
 it('requires authentication', function (): void {
     $this->postJson('/api/ask', ['question' => 'What is the PTO policy?'])
-         ->assertUnauthorized();
+        ->assertUnauthorized();
 });
 
 /**
@@ -72,8 +72,8 @@ it('validates that question is required', function (): void {
     $auth = getAuthHeader();
 
     $this->postJson('/api/ask', [], ['Authorization' => $auth])
-         ->assertUnprocessable()
-         ->assertJsonValidationErrors(['question']);
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['question']);
 });
 
 /**
@@ -88,9 +88,9 @@ it('returns answer and sources for a valid question', function (): void {
     // Seed a document so the vector search has candidates.
     // The factory generates a random embedding that satisfies the NOT NULL constraint.
     Document::factory()->create([
-        'title'   => 'engineering-runbook',
+        'title' => 'engineering-runbook',
         'content' => 'Deployments require two engineer approvals.',
-        'source'  => 'knowledge/engineering-runbook.md',
+        'source' => 'knowledge/engineering-runbook.md',
     ]);
 
     $response = $this->postJson(
@@ -101,7 +101,7 @@ it('returns answer and sources for a valid question', function (): void {
 
     // Even if the LLM call is faked (or bypassed in test), assert JSON structure
     $response->assertStatus(200)
-             ->assertJsonStructure(['answer', 'sources']);
+        ->assertJsonStructure(['answer', 'sources']);
 
     // 'sources' should be an array (may be empty if no docs matched similarity threshold)
     expect($response->json('sources'))->toBeArray();

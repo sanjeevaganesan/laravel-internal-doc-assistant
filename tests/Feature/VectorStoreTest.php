@@ -32,7 +32,7 @@ beforeEach(function (): void {
  */
 function storeAuthHeader(): string
 {
-    $user  = User::factory()->create();
+    $user = User::factory()->create();
     $token = $user->createToken('test')->plainTextToken;
 
     return "Bearer {$token}";
@@ -54,8 +54,8 @@ it('creates a vector store when ingesting documents', function (): void {
     );
 
     $response->assertOk()
-             ->assertJsonStructure(['store_id', 'file_count', 'status'])
-             ->assertJson(['status' => 'ingested']);
+        ->assertJsonStructure(['store_id', 'file_count', 'status'])
+        ->assertJson(['status' => 'ingested']);
 
     // Assert that Stores::create() was called with 'internal-docs'
     Stores::assertCreated('internal-docs');
@@ -78,7 +78,7 @@ it('uploads markdown files to the vector store with metadata', function (): void
     );
 
     $response->assertOk()
-             ->assertJson(['file_count' => 2]);
+        ->assertJson(['file_count' => 2]);
 });
 
 /**
@@ -97,7 +97,7 @@ it('returns zero file count when no markdown files exist', function (): void {
     );
 
     $response->assertOk()
-             ->assertJson(['file_count' => 0]);
+        ->assertJson(['file_count' => 0]);
 });
 
 /**

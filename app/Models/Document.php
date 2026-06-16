@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\DocumentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,15 +27,15 @@ use Illuminate\Database\Eloquent\Model;
  *   3. Collection::rerank() with Cohere narrows to top 5
  *   4. Top 5 chunk texts are injected into the Anthropic agent prompt as context
  *
- * @property int    $id
- * @property string $title      Filename without extension (e.g. "engineering-runbook")
- * @property string $content    The raw chunk text (~800 tokens) sent to the LLM as context
- * @property string $source     Original file path (e.g. "knowledge/engineering-runbook.md")
- * @property array  $embedding  1536-dimensional float vector (cast from pgvector binary)
+ * @property int $id
+ * @property string $title Filename without extension (e.g. "engineering-runbook")
+ * @property string $content The raw chunk text (~800 tokens) sent to the LLM as context
+ * @property string $source Original file path (e.g. "knowledge/engineering-runbook.md")
+ * @property array $embedding 1536-dimensional float vector (cast from pgvector binary)
  */
 class Document extends Model
 {
-    /** @use HasFactory<\Database\Factories\DocumentFactory> */
+    /** @use HasFactory<DocumentFactory> */
     use HasFactory;
 
     /**

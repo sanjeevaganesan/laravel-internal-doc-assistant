@@ -161,7 +161,7 @@ class AskController extends Controller
             );
 
         return response()->json([
-            'answer'  => (string) $response,
+            'answer' => (string) $response,
             'sources' => $topDocuments->pluck('title')->unique()->values(),
         ]);
     }

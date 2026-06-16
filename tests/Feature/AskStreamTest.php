@@ -29,18 +29,18 @@ beforeEach(function (): void {
  */
 it('requires authentication for streaming', function (): void {
     $this->get('/api/ask/stream?question=test')
-         ->assertUnauthorized();
+        ->assertUnauthorized();
 });
 
 /**
  * Test that the stream endpoint validates the question parameter.
  */
 it('validates the question query parameter', function (): void {
-    $user  = User::factory()->create();
+    $user = User::factory()->create();
     $token = $user->createToken('test')->plainTextToken;
 
     $this->get('/api/ask/stream', ['Authorization' => "Bearer {$token}"])
-         ->assertUnprocessable();
+        ->assertUnprocessable();
 });
 
 /**
@@ -50,7 +50,7 @@ it('validates the question query parameter', function (): void {
  * We assert the status code and that the response is received without error.
  */
 it('returns a successful response for a valid streaming question', function (): void {
-    $user  = User::factory()->create();
+    $user = User::factory()->create();
     $token = $user->createToken('test')->plainTextToken;
 
     Document::factory()->count(2)->create();

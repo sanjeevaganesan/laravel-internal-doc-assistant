@@ -52,11 +52,11 @@ it('ingests a markdown file and creates document chunks in the database', functi
 
     // Write a sample markdown file to the fake local disk.
     // Storage::fake maps 'knowledge/' to an in-memory path.
-    $content = str_repeat("This is documentation content. It contains useful information. ", 30);
+    $content = str_repeat('This is documentation content. It contains useful information. ', 30);
     Storage::disk('local')->put('knowledge/sample.md', $content);
 
     $this->artisan('documents:ingest')
-         ->assertExitCode(0);
+        ->assertExitCode(0);
 
     // The file was small enough for 1 chunk — verify exactly 1 row was created.
     expect(Document::count())->toBeGreaterThan(0);
@@ -79,11 +79,11 @@ it('ingests a markdown file and creates document chunks in the database', functi
 it('splits long documents into multiple chunks', function (): void {
     Storage::fake('local');
 
-    $longContent = str_repeat("Detailed documentation about our engineering processes. ", 600);
+    $longContent = str_repeat('Detailed documentation about our engineering processes. ', 600);
     Storage::disk('local')->put('knowledge/long-doc.md', $longContent);
 
     $this->artisan('documents:ingest')
-         ->assertExitCode(0);
+        ->assertExitCode(0);
 
     expect(Document::count())->toBeGreaterThan(1);
 });
@@ -108,7 +108,7 @@ it('truncates the documents table when --fresh flag is used', function (): void 
     );
 
     $this->artisan('documents:ingest', ['--fresh' => true])
-         ->assertExitCode(0);
+        ->assertExitCode(0);
 
     // The 5 pre-seeded rows should be gone; only rows from this ingest remain.
     // (The pre-seeded rows had different titles — all rows now should be 'test')
@@ -133,7 +133,7 @@ it('ignores non-markdown files in the knowledge directory', function (): void {
     Storage::disk('local')->put('knowledge/readme.md', str_repeat('Valid markdown content. ', 20));
 
     $this->artisan('documents:ingest')
-         ->assertExitCode(0);
+        ->assertExitCode(0);
 
     // Only the .md file should produce chunks
     expect(Document::count())->toBeGreaterThan(0);
@@ -152,8 +152,8 @@ it('exits successfully with a warning when no markdown files exist', function ()
     // No files added — directory is empty
 
     $this->artisan('documents:ingest')
-         ->expectsOutputToContain('No .md files found')
-         ->assertExitCode(0);
+        ->expectsOutputToContain('No .md files found')
+        ->assertExitCode(0);
 
     expect(Document::count())->toBe(0);
 });

@@ -58,18 +58,18 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerAiObservability(): void
     {
-        $listener = new AiObservabilityListener();
+        $listener = new AiObservabilityListener;
 
         // Embedding stage: question embedding + chunk embedding during ingest
         Event::listen(GeneratingEmbeddings::class, [$listener, 'onGeneratingEmbeddings']);
-        Event::listen(EmbeddingsGenerated::class,  [$listener, 'onEmbeddingsGenerated']);
+        Event::listen(EmbeddingsGenerated::class, [$listener, 'onEmbeddingsGenerated']);
 
         // Reranking stage: Cohere rerank of 15 candidates → top 5
         Event::listen(Reranking::class, [$listener, 'onReranking']);
-        Event::listen(Reranked::class,  [$listener, 'onReranked']);
+        Event::listen(Reranked::class, [$listener, 'onReranked']);
 
         // Generation stage: Anthropic/OpenAI LLM call
         Event::listen(PromptingAgent::class, [$listener, 'onPromptingAgent']);
-        Event::listen(AgentPrompted::class,  [$listener, 'onAgentPrompted']);
+        Event::listen(AgentPrompted::class, [$listener, 'onAgentPrompted']);
     }
 }

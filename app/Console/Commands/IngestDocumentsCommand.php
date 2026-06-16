@@ -119,11 +119,11 @@ class IngestDocumentsCommand extends Command
 
         // Use the filename (without extension) as the document title.
         // e.g. 'knowledge/engineering-runbook.md' → 'engineering-runbook'
-        $title  = pathinfo($path, PATHINFO_FILENAME);
+        $title = pathinfo($path, PATHINFO_FILENAME);
         $chunks = $this->chunk($rawContent);
 
         $this->info("\n→ [{$title}] — {$path}");
-        $this->info("  Split into " . count($chunks) . " chunk(s)");
+        $this->info('  Split into '.count($chunks).' chunk(s)');
 
         $bar = $this->output->createProgressBar(count($chunks));
         $bar->start();
@@ -148,9 +148,9 @@ class IngestDocumentsCommand extends Command
             $embedding = Str::of($chunk)->toEmbeddings(cache: true);
 
             Document::create([
-                'title'     => $title,
-                'content'   => $chunk,
-                'source'    => $path,
+                'title' => $title,
+                'content' => $chunk,
+                'source' => $path,
                 'embedding' => $embedding,
             ]);
 
@@ -182,7 +182,7 @@ class IngestDocumentsCommand extends Command
     {
         $chunks = [];
         $length = strlen($text);
-        $start  = 0;
+        $start = 0;
 
         while ($start < $length) {
             // Calculate the tentative end position for this chunk.
@@ -192,7 +192,7 @@ class IngestDocumentsCommand extends Command
             // boundary to the nearest preceding sentence end ('. ').
             // This avoids cutting words or sentences in half.
             if ($end < $length) {
-                $slice    = substr($text, $start, $end - $start);
+                $slice = substr($text, $start, $end - $start);
                 $boundary = strrpos($slice, '. ');
 
                 if ($boundary !== false && $boundary > self::CHUNK_CHARS / 2) {
