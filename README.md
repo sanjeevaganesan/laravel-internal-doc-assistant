@@ -631,6 +631,8 @@ understand how the application is built layer by layer.
 git log --oneline
 ```
 
+**`main` branch — shared backend + Blade+Alpine.js frontend**
+
 | # | Commit message (prefix) | What it introduces |
 |---|-------------------------|--------------------|
 | 1 | `Bootstrap` | Laravel 13.15 + `laravel/ai` v0.8.1 + Pest 4.7 installed; `tests/Pest.php` configured |
@@ -646,6 +648,14 @@ git log --oneline
 | 10 | `Tests` | 22 Pest tests across 5 files — `Embeddings::fake()`, `Reranking::fake()`, `Stores::fake()`, `Storage::fake()` |
 | 11 | `README` | RAG concepts, open-book analogy, Mermaid diagrams, setup guide, API reference, 14-term glossary |
 | 12 | `Frontend` | Blade + Alpine.js UI — "Ask" (JSON) + "Stream" (EventSource) buttons; `pint` code style pass |
+
+**`feature/react-vercel-ai` branch — adds React + Vercel AI SDK frontend (3 commits on top of `main`)**
+
+| # | Commit message (prefix) | What it introduces |
+|---|-------------------------|--------------------|
+| R1 | `Install React` | `npm install react react-dom @ai-sdk/react ai`; `vite.config.js` updated with `@vitejs/plugin-react`, entry changed to `app.jsx` |
+| R2 | `POST /api/ask/chat` | New endpoint accepting `useChat()` wire format (`{ messages: [...] }`) — same RAG pipeline, returns Vercel data protocol stream |
+| R3 | `DocAssistant component` | `resources/js/app.jsx` (React entry + `createRoot`), `DocAssistant.jsx` with `useChat()` + `useState` + streaming cursor + suggestion chips; Blade shell replaced with `<div id="app">` + `@vite()` |
 
 ### How to walk through the commits
 
@@ -666,10 +676,10 @@ git checkout main     # return to latest
 
 ### Branch plan
 
-| Branch | Frontend | When |
-|--------|----------|------|
+| Branch | Frontend | Status |
+|--------|----------|--------|
 | `main` | Blade + Alpine.js (no build step, native `EventSource`) | ✅ Complete |
-| `feature/react-vercel-ai` | React + Vercel AI SDK `useChat()` hook | Next — create from `main` |
+| `feature/react-vercel-ai` | React + Vercel AI SDK `useChat()` hook | ✅ Complete |
 
-The `GET /api/ask/stream` backend already outputs `->usingVercelDataProtocol()`.
-The React branch only changes the frontend — the API is identical.
+The shared backend (`POST /ask`, `GET /ask/stream`, `POST /api/ask/chat`) is identical across both branches.
+`->usingVercelDataProtocol()` is already on `main` — the React branch just swaps the frontend.
